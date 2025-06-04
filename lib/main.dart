@@ -22,11 +22,9 @@ class MyApp extends StatelessWidget {
           seedColor: Color(0xFF1A237E), // Deep Indigo
           primary: Color(0xFF1A237E), // Deep Indigo
           secondary: Color(0xFF00B8A9), // Teal Accent
-          background: Color(0xFFF5F6FA), // Soft Gray
           surface: Colors.white,
           onPrimary: Colors.white,
           onSecondary: Colors.white,
-          onBackground: Color(0xFF22223B),
           onSurface: Color(0xFF22223B),
           brightness: Brightness.light,
         ),

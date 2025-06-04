@@ -24,7 +24,6 @@ class DetailScreen extends StatefulWidget {
 class _DetailScreenState extends State<DetailScreen> {
   Map<String, dynamic>? recipe;
   bool isLoading = true;
-  bool isFavorite = false;
 
   @override
   void initState() {
@@ -64,8 +63,6 @@ class _DetailScreenState extends State<DetailScreen> {
       };
       isLoading = false;
     });
-
-    await checkIfFavorite();
   }
 
   void loadLokalDetails() {
@@ -82,50 +79,6 @@ class _DetailScreenState extends State<DetailScreen> {
       };
       isLoading = false;
     });
-
-    checkIfFavorite();
-  }
-
-  Future<void> checkIfFavorite() async {
-    bool favorite = false;
-    if (widget.isFromApi) {
-      favorite = await DatabaseHelper.instance.isFavoritApi(
-        widget.meal!.idMeal,
-      );
-    } else {
-      final resep = await DatabaseHelper.instance.readResepLokal(
-        widget.resepLokal!.id!,
-      );
-      favorite = resep?.isFavorite == 1;
-    }
-
-    setState(() {
-      isFavorite = favorite;
-    });
-  }
-
-  Future<void> toggleFavorite() async {
-    if (widget.isFromApi) {
-      final id = widget.meal!.idMeal;
-      if (isFavorite) {
-        await DatabaseHelper.instance.removeFavoritApi(id);
-        setState(() {
-          isFavorite = false;
-        });
-      } else {
-        await DatabaseHelper.instance.addFavoritApi(widget.meal!);
-        setState(() {
-          isFavorite = true;
-        });
-      }
-    } else {
-      final id = widget.resepLokal!.id!;
-      final newValue = isFavorite ? 0 : 1;
-      await DatabaseHelper.instance.toggleFavoritResepLokal(id, newValue);
-      setState(() {
-        isFavorite = !isFavorite;
-      });
-    }
   }
 
   Widget _buildImage() {
@@ -219,17 +172,6 @@ class _DetailScreenState extends State<DetailScreen> {
         backgroundColor: Theme.of(context).colorScheme.primary,
         foregroundColor: Colors.white,
         elevation: 1,
-        actions: [
-          IconButton(
-            icon: Icon(
-              isFavorite ? Icons.favorite : Icons.favorite_border,
-              color: isFavorite ? Colors.red : Colors.white,
-              size: 26,
-            ),
-            onPressed: toggleFavorite,
-            tooltip: isFavorite ? 'Hapus dari Favorit' : 'Tambah ke Favorit',
-          ),
-        ],
       ),
       body: SingleChildScrollView(
         child: Padding(

@@ -156,7 +156,7 @@ class ResepLokal {
   final String deskripsi;
   final String bahan;
   final String imagePath;
-  final int isFavorite;
+  int isFavorite; // tambahkan field ini
 
   ResepLokal({
     this.id,
@@ -195,3 +195,5 @@ class ResepLokal {
     );
   }
 }
+
+// Tidak ada perubahan pada model, biarkan field isFavorite tetap ada agar tidak error di bagian lain.

@@ -1,9 +1,7 @@
 import 'dart:convert';
-import 'dart:io';
 import 'package:projek/models/recipe_model.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class DatabaseHelper {
@@ -22,13 +20,18 @@ class DatabaseHelper {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, filePath);
 
-    return await openDatabase(path, version: 1, onCreate: _createDB);
+    return await openDatabase(
+      path,
+      version: 2,
+      onCreate: _createDB,
+      onUpgrade: _onUpgrade,
+    );
   }
 
   Future _createDB(Database db, int version) async {
     const idType = 'INTEGER PRIMARY KEY AUTOINCREMENT';
     const textType = 'TEXT NOT NULL';
-    const intType = 'INTEGER NOT NULL';
+    const intType = 'INTEGER NOT NULL DEFAULT 0';
 
     await db.execute('''
       CREATE TABLE resep_lokal (
@@ -45,13 +48,30 @@ class DatabaseHelper {
 
     await db.execute('''
       CREATE TABLE favorit_api (
-        idMeal $textType PRIMARY KEY,
-        strMeal $textType,
-        strMealThumb $textType,
-        strCategory $textType,
-        strArea $textType
+        idMeal TEXT PRIMARY KEY,
+        strMeal TEXT,
+        strCategory TEXT,
+        strArea TEXT,
+        strMealThumb TEXT
       )
     ''');
+  }
+
+  Future _onUpgrade(Database db, int oldVersion, int newVersion) async {
+    if (oldVersion < 2) {
+      await db.execute(
+        'ALTER TABLE resep_lokal ADD COLUMN isFavorite INTEGER NOT NULL DEFAULT 0',
+      );
+      await db.execute('''
+        CREATE TABLE IF NOT EXISTS favorit_api (
+          idMeal TEXT PRIMARY KEY,
+          strMeal TEXT,
+          strCategory TEXT,
+          strArea TEXT,
+          strMealThumb TEXT
+        )
+      ''');
+    }
   }
 
   // CRUD untuk Resep Lokal
@@ -80,7 +100,6 @@ class DatabaseHelper {
         'deskripsi',
         'bahan',
         'imagePath',
-        'isFavorite',
       ],
       where: 'id = ?',
       whereArgs: [id],
@@ -106,74 +125,6 @@ class DatabaseHelper {
   Future<int> deleteResepLokal(int id) async {
     final db = await instance.database;
     return await db.delete('resep_lokal', where: 'id = ?', whereArgs: [id]);
-  }
-
-  Future<List<ResepLokal>> getFavoritResepLokal() async {
-    final db = await instance.database;
-    final result = await db.query(
-      'resep_lokal',
-      where: 'isFavorite = ?',
-      whereArgs: [1],
-      orderBy: 'nama ASC',
-    );
-
-    return result.map((json) => ResepLokal.fromMap(json)).toList();
-  }
-
-  Future<int> toggleFavoritResepLokal(int id, int isFavorite) async {
-    final db = await instance.database;
-    return await db.update(
-      'resep_lokal',
-      {'isFavorite': isFavorite},
-      where: 'id = ?',
-      whereArgs: [id],
-    );
-  }
-
-  // CRUD untuk Favorit API
-  Future<int> addFavoritApi(Meal meal) async {
-    final db = await instance.database;
-    // Cek apakah sudah ada
-    final exists = await db.query(
-      'favorit_api',
-      where: 'idMeal = ?',
-      whereArgs: [meal.idMeal],
-    );
-    if (exists.isNotEmpty) {
-      // Sudah ada, tidak perlu tambah lagi
-      return 0;
-    }
-    return await db.insert('favorit_api', {
-      'idMeal': meal.idMeal,
-      'strMeal': meal.strMeal,
-      'strMealThumb': meal.strMealThumb,
-      'strCategory': meal.strCategory,
-      'strArea': meal.strArea,
-    });
-  }
-
-  Future<int> removeFavoritApi(String idMeal) async {
-    final db = await instance.database;
-    return await db.delete(
-      'favorit_api',
-      where: 'idMeal = ?',
-      whereArgs: [idMeal],
-    );
-  }
-
-  Future<List<Map<String, dynamic>>> getFavoritApi() async {
-    final db = await instance.database;
-    return await db.query('favorit_api', orderBy: 'strMeal ASC');
-  }
-
-  Future<bool> isFavoritApi(String idMeal) async {
-    final db = await instance.database;
-    final result = await db.query(
-      'favorit_api',
-      where: 'idMeal = ?',
-      whereArgs: [idMeal],
-    );
-    return result.isNotEmpty;
   }
 
   // USER AUTH SECTION - SharedPreferences Only
@@ -242,6 +193,28 @@ class DatabaseHelper {
     final path = join(dbPath, 'resep_lokal.db');
     await databaseFactory.deleteDatabase(path);
     _database = null;
+  }
+
+  // Favorit API
+  Future<void> addFavoritApi(Meal meal) async {
+    // fitur favorite dinonaktifkan
+  }
+
+  Future<void> removeFavoritApi(String idMeal) async {
+    // fitur favorite dinonaktifkan
+  }
+
+  Future<List<Map<String, dynamic>>> getFavoritApi() async {
+    return []; // fitur favorite dinonaktifkan
+  }
+
+  // Favorit Lokal
+  Future<void> toggleFavoritResepLokal(int id, int isFavorite) async {
+    // fitur favorite dinonaktifkan
+  }
+
+  Future<List<ResepLokal>> getFavoritResepLokal() async {
+    return []; // fitur favorite dinonaktifkan
   }
 
   Future close() async {

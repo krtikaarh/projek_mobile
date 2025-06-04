@@ -2,11 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:projek/models/recipe_model.dart';
 import 'package:projek/screens/add_recipe_screen.dart';
 import 'package:projek/screens/edit_profile_screen.dart';
-import 'package:projek/screens/favorites_screen.dart';
 import 'package:projek/screens/recipe_detail_screen.dart';
 import 'package:projek/screens/login_screen.dart';
 import 'package:projek/services/api_services.dart';
 import 'package:projek/services/database_helper.dart';
+import 'package:projek/screens/kelompok_screen.dart'; // Tambahkan import ini
+import 'package:projek/screens/favorites_screen.dart'; // Tambahkan import ini
 
 class BerandaScreen extends StatefulWidget {
   @override
@@ -18,12 +19,15 @@ class _BerandaScreenState extends State<BerandaScreen> {
   List<Kategori> kategoriList = [];
   bool isLoading = true;
   TextEditingController _searchController = TextEditingController();
+  // Hapus resepLokalList dan _loadResepLokal
+  // List<ResepLokal> resepLokalList = [];
 
   @override
   void initState() {
     super.initState();
     _checkLogin();
     _loadKategori();
+    // _loadResepLokal(); // Hapus pemanggilan ini
   }
 
   Future<void> _checkLogin() async {
@@ -74,7 +78,7 @@ class _BerandaScreenState extends State<BerandaScreen> {
     } else if (index == 3) {
       Navigator.push(
         context,
-        MaterialPageRoute(builder: (context) => TambahResepScreen()),
+        MaterialPageRoute(builder: (context) => KelompokScreen()),
       );
     }
   }
@@ -101,7 +105,7 @@ class _BerandaScreenState extends State<BerandaScreen> {
   }
 
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
+    Theme.of(context);
     return Scaffold(
       backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
@@ -230,18 +234,7 @@ class _BerandaScreenState extends State<BerandaScreen> {
           ),
         ),
       ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _onItemTapped(3),
-        backgroundColor: Theme.of(context).colorScheme.secondary,
-        foregroundColor: Colors.white,
-        icon: Icon(Icons.add, size: 28),
-        label: Text(
-          'Tambah Resep',
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        elevation: 4,
-      ),
+      // Hapus floatingActionButton
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
           color: Colors.white,
@@ -276,7 +269,7 @@ class _BerandaScreenState extends State<BerandaScreen> {
               icon: Icon(Icons.favorite),
               label: 'Favorit',
             ),
-            BottomNavigationBarItem(icon: Icon(Icons.add), label: 'Tambah'),
+            BottomNavigationBarItem(icon: Icon(Icons.group), label: 'Kelompok'),
           ],
         ),
       ),
