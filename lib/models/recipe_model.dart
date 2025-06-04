@@ -112,20 +112,20 @@ class Meal {
     );
   }
 
-  // Factory constructor untuk data dari database lokal
+  // Factory constructor untuk data dari database favorit_api
   factory Meal.fromMap(Map<String, dynamic> map) {
     return Meal(
       idMeal: map['idMeal'] ?? '',
       strMeal: map['strMeal'] ?? '',
-      strDrinkAlternate: map['strDrinkAlternate'] ?? '',
+      strDrinkAlternate: '', // Tidak disimpan di favorit_api
       strCategory: map['strCategory'] ?? '',
       strArea: map['strArea'] ?? '',
-      strInstructions: map['strInstructions'] ?? '',
+      strInstructions: '', // Tidak disimpan di favorit_api
       strMealThumb: map['strMealThumb'] ?? '',
-      strTags: map['strTags'] ?? '',
-      strYoutube: map['strYoutube'] ?? '',
-      ingredients: [], // Bisa dikembangkan jika ingin simpan ingredients di DB
-      measures: [],    // Bisa dikembangkan jika ingin simpan measures di DB
+      strTags: '', // Tidak disimpan di favorit_api
+      strYoutube: '', // Tidak disimpan di favorit_api
+      ingredients: [],
+      measures: [],
     );
   }
 

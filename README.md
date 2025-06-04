@@ -2,6 +2,21 @@
 
 A new Flutter project.
 
+## Fitur yang sudah diterapkan
+
+- **API (Read):** Mengambil data kategori, resep, dan detail resep dari [TheMealDB API](https://www.themealdb.com/api.php).
+- **Shared Preferences:** Digunakan untuk menyimpan status login user, username, dan path foto profil.
+- **Local Database (Sqflite):** CRUD resep lokal (tambah, edit, hapus, baca), serta penyimpanan resep favorit dari API dan lokal.
+- **Camera Permission:** Pengambilan foto profil dan gambar resep langsung dari kamera (menggunakan permission_handler dan image_picker).
+
+## Catatan
+
+- Semua ketentuan *wajib* dan *sunnah* pada deskripsi sudah terpenuhi:
+  - API minimal read ✔️
+  - Shared Preferences ✔️
+  - Local Database CRUD ✔️
+  - Camera Permission ✔️
+
 ## Getting Started
 
 This project is a starting point for a Flutter application.

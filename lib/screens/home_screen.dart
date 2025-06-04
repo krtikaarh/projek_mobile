@@ -88,14 +88,34 @@ class _BerandaScreenState extends State<BerandaScreen> {
     );
   }
 
+  void _onSearch(String value) async {
+    if (value.isNotEmpty) {
+      final meals = await ApiService.searchMealsByName(value);
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => SearchResultScreen(keyword: value, meals: meals),
+        ),
+      );
+    }
+  }
+
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
-      backgroundColor: Colors.grey[50],
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
-        title: Text('Beranda'),
+        title: Text(
+          'Beranda',
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22),
+        ),
         actions: [
           IconButton(
-            icon: Icon(Icons.account_circle),
+            icon: Icon(
+              Icons.account_circle,
+              size: 28,
+              color: Theme.of(context).colorScheme.secondary,
+            ),
             tooltip: 'Edit Profile',
             onPressed: () {
               Navigator.push(
@@ -105,66 +125,71 @@ class _BerandaScreenState extends State<BerandaScreen> {
             },
           ),
           IconButton(
-            icon: Icon(Icons.logout),
+            icon: Icon(
+              Icons.logout,
+              size: 26,
+              color: Theme.of(context).colorScheme.secondary,
+            ),
             onPressed: _logout,
             tooltip: 'Logout',
           ),
         ],
-        backgroundColor: Colors.teal,
+        backgroundColor: Theme.of(context).colorScheme.primary,
         foregroundColor: Colors.white,
-        elevation: 0,
+        elevation: 2,
       ),
       body: SafeArea(
         child: Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: const EdgeInsets.all(18.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Header
               Text(
-                'Halo,',
+                'Selamat Datang,',
                 style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.w300,
-                  color: Colors.grey[700],
+                  fontSize: 28,
+                  fontWeight: FontWeight.w600,
+                  color: Theme.of(context).colorScheme.primary,
+                  letterSpacing: 0.5,
                 ),
               ),
+              SizedBox(height: 4),
               Text(
-                'Apa yang ada di dapur Anda?',
-                style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+                'Temukan resep favoritmu atau tambahkan kreasi baru!',
+                style: TextStyle(fontSize: 16, color: Color(0xFF6C757D)),
               ),
-              SizedBox(height: 20),
+              SizedBox(height: 22),
 
               // Search Bar
               Container(
                 decoration: BoxDecoration(
                   color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.grey.withOpacity(0.1),
+                      color: Theme.of(
+                        context,
+                      ).colorScheme.primary.withOpacity(0.07),
                       spreadRadius: 1,
-                      blurRadius: 3,
-                      offset: Offset(0, 1),
+                      blurRadius: 8,
+                      offset: Offset(0, 2),
                     ),
                   ],
                 ),
                 child: TextField(
                   controller: _searchController,
                   decoration: InputDecoration(
-                    hintText: 'Masukkan bahan-bahan Anda',
-                    prefixIcon: Icon(Icons.search, color: Colors.grey[400]),
+                    hintText: 'Cari nama makanan...',
+                    prefixIcon: Icon(
+                      Icons.search,
+                      color: Theme.of(context).colorScheme.secondary,
+                    ),
                     border: InputBorder.none,
-                    contentPadding: EdgeInsets.all(16),
+                    contentPadding: EdgeInsets.all(18),
                   ),
-                  onSubmitted: (value) {
-                    if (value.isNotEmpty) {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => Container()),
-                      );
-                    }
-                  },
+                  onSubmitted: _onSearch,
+                  style: TextStyle(fontSize: 16),
                 ),
               ),
               SizedBox(height: 30),
@@ -175,7 +200,8 @@ class _BerandaScreenState extends State<BerandaScreen> {
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
-                  color: Colors.grey[800],
+                  color: Theme.of(context).colorScheme.primary,
+                  letterSpacing: 0.5,
                 ),
               ),
               SizedBox(height: 16),
@@ -189,9 +215,9 @@ class _BerandaScreenState extends State<BerandaScreen> {
                           gridDelegate:
                               SliverGridDelegateWithFixedCrossAxisCount(
                                 crossAxisCount: 2,
-                                crossAxisSpacing: 12,
-                                mainAxisSpacing: 12,
-                                childAspectRatio: 3,
+                                crossAxisSpacing: 16,
+                                mainAxisSpacing: 16,
+                                childAspectRatio: 2.7,
                               ),
                           itemCount: kategoriList.length,
                           itemBuilder: (context, index) {
@@ -204,23 +230,32 @@ class _BerandaScreenState extends State<BerandaScreen> {
           ),
         ),
       ),
-      floatingActionButton: Container(
-        decoration: BoxDecoration(
-          color: Colors.teal,
-          borderRadius: BorderRadius.circular(16),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => _onItemTapped(3),
+        backgroundColor: Theme.of(context).colorScheme.secondary,
+        foregroundColor: Colors.white,
+        icon: Icon(Icons.add, size: 28),
+        label: Text(
+          'Tambah Resep',
+          style: TextStyle(fontWeight: FontWeight.bold),
         ),
-        child: IconButton(
-          onPressed: () => _onItemTapped(3),
-          icon: Icon(Icons.add, color: Colors.white, size: 28),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        elevation: 4,
       ),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
-          color: Colors.grey[200],
+          color: Colors.white,
           borderRadius: BorderRadius.only(
-            topLeft: Radius.circular(20),
-            topRight: Radius.circular(20),
+            topLeft: Radius.circular(22),
+            topRight: Radius.circular(22),
           ),
+          boxShadow: [
+            BoxShadow(
+              color: Theme.of(context).colorScheme.primary.withOpacity(0.08),
+              blurRadius: 10,
+              offset: Offset(0, -2),
+            ),
+          ],
         ),
         child: BottomNavigationBar(
           currentIndex: _selectedIndex,
@@ -228,8 +263,9 @@ class _BerandaScreenState extends State<BerandaScreen> {
           type: BottomNavigationBarType.fixed,
           backgroundColor: Colors.transparent,
           elevation: 0,
-          selectedItemColor: Colors.teal,
+          selectedItemColor: Theme.of(context).colorScheme.primary,
           unselectedItemColor: Colors.grey[600],
+          selectedLabelStyle: TextStyle(fontWeight: FontWeight.bold),
           items: [
             BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Beranda'),
             BottomNavigationBarItem(
@@ -248,7 +284,6 @@ class _BerandaScreenState extends State<BerandaScreen> {
   }
 
   Widget _buildKategoriCard(Kategori kategori) {
-    // Icon mapping untuk setiap kategori
     IconData getKategoriIcon(String nama) {
       switch (nama.toLowerCase()) {
         case 'beef':
@@ -313,41 +348,41 @@ class _BerandaScreenState extends State<BerandaScreen> {
       child: Container(
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(18),
           boxShadow: [
             BoxShadow(
-              color: Colors.grey.withOpacity(0.1),
+              color: Colors.teal.withOpacity(0.07),
               spreadRadius: 1,
-              blurRadius: 3,
+              blurRadius: 8,
               offset: Offset(0, 2),
             ),
           ],
         ),
         child: Padding(
-          padding: const EdgeInsets.all(12.0),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
           child: Row(
             children: [
               Container(
-                width: 40,
-                height: 40,
+                width: 44,
+                height: 44,
                 decoration: BoxDecoration(
-                  color: Colors.teal.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(10),
+                  color: Colors.teal.withOpacity(0.13),
+                  borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(
                   getKategoriIcon(kategori.strCategory),
-                  color: Colors.teal,
-                  size: 20,
+                  color: Colors.teal[700],
+                  size: 26,
                 ),
               ),
-              SizedBox(width: 12),
+              SizedBox(width: 14),
               Expanded(
                 child: Text(
                   kategori.strCategory,
                   style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w500,
-                    color: Colors.grey[800],
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
+                    color: Colors.teal[900],
                   ),
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -404,6 +439,58 @@ class MealsByCategoryScreen extends StatelessWidget {
           );
         },
       ),
+    );
+  }
+}
+
+// Layar hasil pencarian makanan
+class SearchResultScreen extends StatelessWidget {
+  final String keyword;
+  final List<Meal> meals;
+
+  const SearchResultScreen({
+    Key? key,
+    required this.keyword,
+    required this.meals,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Hasil: "$keyword"'),
+        backgroundColor: Colors.teal,
+        foregroundColor: Colors.white,
+      ),
+      body:
+          meals.isEmpty
+              ? Center(child: Text('Tidak ada hasil ditemukan.'))
+              : ListView.separated(
+                itemCount: meals.length,
+                separatorBuilder: (_, __) => Divider(height: 1),
+                itemBuilder: (context, index) {
+                  final meal = meals[index];
+                  return ListTile(
+                    leading: Image.network(
+                      meal.strMealThumb,
+                      width: 60,
+                      height: 60,
+                      fit: BoxFit.cover,
+                    ),
+                    title: Text(meal.strMeal),
+                    trailing: Icon(Icons.arrow_forward_ios),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder:
+                              (_) => DetailScreen(meal: meal, isFromApi: true),
+                        ),
+                      );
+                    },
+                  );
+                },
+              ),
     );
   }
 }

@@ -133,6 +133,16 @@ class DatabaseHelper {
   // CRUD untuk Favorit API
   Future<int> addFavoritApi(Meal meal) async {
     final db = await instance.database;
+    // Cek apakah sudah ada
+    final exists = await db.query(
+      'favorit_api',
+      where: 'idMeal = ?',
+      whereArgs: [meal.idMeal],
+    );
+    if (exists.isNotEmpty) {
+      // Sudah ada, tidak perlu tambah lagi
+      return 0;
+    }
     return await db.insert('favorit_api', {
       'idMeal': meal.idMeal,
       'strMeal': meal.strMeal,

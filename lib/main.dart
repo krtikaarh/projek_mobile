@@ -18,8 +18,47 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Resep Masakan',
       theme: ThemeData(
-        primarySwatch: Colors.teal,
-        visualDensity: VisualDensity.adaptivePlatformDensity,
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: Color(0xFF1A237E), // Deep Indigo
+          primary: Color(0xFF1A237E), // Deep Indigo
+          secondary: Color(0xFF00B8A9), // Teal Accent
+          background: Color(0xFFF5F6FA), // Soft Gray
+          surface: Colors.white,
+          onPrimary: Colors.white,
+          onSecondary: Colors.white,
+          onBackground: Color(0xFF22223B),
+          onSurface: Color(0xFF22223B),
+          brightness: Brightness.light,
+        ),
+        scaffoldBackgroundColor: Color(0xFFF5F6FA),
+        appBarTheme: AppBarTheme(
+          backgroundColor: Color(0xFF1A237E),
+          foregroundColor: Colors.white,
+          elevation: 2,
+        ),
+        elevatedButtonTheme: ElevatedButtonThemeData(
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Color(0xFF1A237E),
+            foregroundColor: Colors.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            textStyle: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+          ),
+        ),
+        inputDecorationTheme: InputDecorationTheme(
+          filled: true,
+          fillColor: Colors.white,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(color: Color(0xFFB0BEC5)),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(color: Color(0xFF1A237E), width: 2),
+          ),
+          labelStyle: TextStyle(color: Color(0xFF1A237E)),
+        ),
         fontFamily: 'Roboto',
       ),
       debugShowCheckedModeBanner: false,

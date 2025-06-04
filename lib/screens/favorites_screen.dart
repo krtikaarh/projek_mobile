@@ -43,7 +43,7 @@ class _FavoritScreenState extends State<FavoritScreen> {
 
     setState(() {
       favoritApi = apiData.map((data) => Meal.fromMap(data)).toList();
-      favoritLokal = lokalData;
+      favoritLokal = lokalData.where((r) => r.isFavorite == 1).toList();
       isLoading = false;
     });
   }
@@ -51,115 +51,182 @@ class _FavoritScreenState extends State<FavoritScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Resep Favorit')),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      appBar: AppBar(
+        title: Text(
+          'Resep Favorit',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        foregroundColor: Colors.white,
+        elevation: 2,
+      ),
       body:
           isLoading
               ? Center(child: CircularProgressIndicator())
               : SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    if (favoritApi.isNotEmpty) ...[
-                      Padding(
-                        padding: EdgeInsets.all(12.0),
-                        child: Text(
-                          'Favorit dari API',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
+                child: Padding(
+                  padding: const EdgeInsets.all(18.0),
+                  child: Card(
+                    elevation: 6,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(18),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 18,
                       ),
-                      ListView.builder(
-                        shrinkWrap: true,
-                        physics: NeverScrollableScrollPhysics(),
-                        itemCount: favoritApi.length,
-                        itemBuilder: (context, index) {
-                          final meal = favoritApi[index];
-                          return ListTile(
-                            leading: Image.network(
-                              meal.strMealThumb,
-                              width: 60,
-                              height: 60,
-                              fit: BoxFit.cover,
-                            ),
-                            title: Text(meal.strMeal),
-                            subtitle: Text(meal.strCategory ?? ''),
-                            trailing: Icon(Icons.arrow_forward_ios),
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder:
-                                      (_) => DetailScreen(
-                                        isFromApi: true,
-                                        meal: meal,
-                                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          if (favoritApi.isNotEmpty) ...[
+                            Padding(
+                              padding: EdgeInsets.all(8.0),
+                              child: Text(
+                                'Favorit dari API',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: Theme.of(context).colorScheme.primary,
                                 ),
-                              ).then(
-                                (_) => loadFavorit(),
-                              ); // refresh after return
-                            },
-                          );
-                        },
-                      ),
-                    ],
-                    if (favoritLokal.isNotEmpty) ...[
-                      Padding(
-                        padding: EdgeInsets.all(12.0),
-                        child: Text(
-                          'Favorit dari Lokal',
-                          style: TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                      ListView.builder(
-                        shrinkWrap: true,
-                        physics: NeverScrollableScrollPhysics(),
-                        itemCount: favoritLokal.length,
-                        itemBuilder: (context, index) {
-                          final resep = favoritLokal[index];
-                          return ListTile(
-                            leading: Image.file(
-                              File(resep.imagePath),
-                              width: 60,
-                              height: 60,
-                              fit: BoxFit.cover,
+                              ),
                             ),
-                            title: Text(resep.nama),
-                            subtitle: Text(resep.kategori),
-                            trailing: Icon(Icons.arrow_forward_ios),
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder:
-                                      (_) => DetailScreen(
-                                        isFromApi: false,
-                                        resepLokal: resep,
+                            ListView.builder(
+                              shrinkWrap: true,
+                              physics: NeverScrollableScrollPhysics(),
+                              itemCount: favoritApi.length,
+                              itemBuilder: (context, index) {
+                                final meal = favoritApi[index];
+                                return Card(
+                                  margin: EdgeInsets.symmetric(
+                                    vertical: 6,
+                                    horizontal: 2,
+                                  ),
+                                  elevation: 2,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: ListTile(
+                                    leading: ClipRRect(
+                                      borderRadius: BorderRadius.circular(8),
+                                      child: Image.network(
+                                        meal.strMealThumb,
+                                        width: 54,
+                                        height: 54,
+                                        fit: BoxFit.cover,
                                       ),
+                                    ),
+                                    title: Text(
+                                      meal.strMeal,
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                    subtitle: Text(meal.strCategory ?? ''),
+                                    trailing: Icon(
+                                      Icons.arrow_forward_ios,
+                                      size: 18,
+                                    ),
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder:
+                                              (_) => DetailScreen(
+                                                isFromApi: true,
+                                                meal: meal,
+                                              ),
+                                        ),
+                                      ).then((_) => loadFavorit());
+                                    },
+                                  ),
+                                );
+                              },
+                            ),
+                          ],
+                          if (favoritLokal.isNotEmpty) ...[
+                            Padding(
+                              padding: EdgeInsets.all(8.0),
+                              child: Text(
+                                'Favorit dari Lokal',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: Theme.of(context).colorScheme.primary,
                                 ),
-                              ).then(
-                                (_) => loadFavorit(),
-                              ); // refresh after return
-                            },
-                          );
-                        },
+                              ),
+                            ),
+                            ListView.builder(
+                              shrinkWrap: true,
+                              physics: NeverScrollableScrollPhysics(),
+                              itemCount: favoritLokal.length,
+                              itemBuilder: (context, index) {
+                                final resep = favoritLokal[index];
+                                return Card(
+                                  margin: EdgeInsets.symmetric(
+                                    vertical: 6,
+                                    horizontal: 2,
+                                  ),
+                                  elevation: 2,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: ListTile(
+                                    leading: ClipRRect(
+                                      borderRadius: BorderRadius.circular(8),
+                                      child: Image.file(
+                                        File(resep.imagePath),
+                                        width: 54,
+                                        height: 54,
+                                        fit: BoxFit.cover,
+                                      ),
+                                    ),
+                                    title: Text(
+                                      resep.nama,
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                    subtitle: Text(resep.kategori),
+                                    trailing: Icon(
+                                      Icons.arrow_forward_ios,
+                                      size: 18,
+                                    ),
+                                    onTap: () {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                          builder:
+                                              (_) => DetailScreen(
+                                                isFromApi: false,
+                                                resepLokal: resep,
+                                              ),
+                                        ),
+                                      ).then((_) => loadFavorit());
+                                    },
+                                  ),
+                                );
+                              },
+                            ),
+                          ],
+                          if (favoritApi.isEmpty && favoritLokal.isEmpty)
+                            Center(
+                              child: Padding(
+                                padding: EdgeInsets.all(24.0),
+                                child: Text(
+                                  "Belum ada resep favorit yang disimpan.",
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    color: Colors.grey[600],
+                                  ),
+                                ),
+                              ),
+                            ),
+                        ],
                       ),
-                    ],
-                    if (favoritApi.isEmpty && favoritLokal.isEmpty)
-                      Center(
-                        child: Padding(
-                          padding: EdgeInsets.all(24.0),
-                          child: Text(
-                            "Belum ada resep favorit yang disimpan.",
-                            style: TextStyle(fontSize: 16),
-                          ),
-                        ),
-                      ),
-                  ],
+                    ),
+                  ),
                 ),
               ),
     );

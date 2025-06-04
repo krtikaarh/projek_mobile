@@ -3,6 +3,7 @@ import 'package:projek/models/recipe_model.dart';
 import 'package:projek/services/api_services.dart';
 import 'package:projek/services/database_helper.dart';
 import 'package:projek/screens/login_screen.dart';
+import 'dart:io';
 
 class DetailScreen extends StatefulWidget {
   final Meal? meal;
@@ -58,6 +59,8 @@ class _DetailScreenState extends State<DetailScreen> {
         'strCategory': detail?.strCategory,
         'strArea': detail?.strArea,
         'strInstructions': detail?.strInstructions,
+        'ingredients': detail?.ingredients ?? [],
+        'measures': detail?.measures ?? [],
       };
       isLoading = false;
     });
@@ -72,8 +75,10 @@ class _DetailScreenState extends State<DetailScreen> {
         'strMeal': lokal.nama,
         'strMealThumb': lokal.imagePath,
         'strCategory': lokal.kategori,
-        'strArea': 'Lokal',
+        'strArea': lokal.area,
         'strInstructions': lokal.deskripsi,
+        'ingredients': lokal.bahan.split(','),
+        'measures': [],
       };
       isLoading = false;
     });
@@ -104,22 +109,98 @@ class _DetailScreenState extends State<DetailScreen> {
       final id = widget.meal!.idMeal;
       if (isFavorite) {
         await DatabaseHelper.instance.removeFavoritApi(id);
+        setState(() {
+          isFavorite = false;
+        });
       } else {
         await DatabaseHelper.instance.addFavoritApi(widget.meal!);
+        setState(() {
+          isFavorite = true;
+        });
       }
     } else {
       final id = widget.resepLokal!.id!;
       final newValue = isFavorite ? 0 : 1;
       await DatabaseHelper.instance.toggleFavoritResepLokal(id, newValue);
+      setState(() {
+        isFavorite = !isFavorite;
+      });
     }
+  }
 
-    setState(() {
-      isFavorite = !isFavorite;
-    });
+  Widget _buildImage() {
+    final img = recipe!['strMealThumb'];
+    if (img != null && img.toString().startsWith('http')) {
+      return Image.network(
+        img,
+        fit: BoxFit.cover,
+        width: double.infinity,
+        height: 220,
+      );
+    } else if (img != null && img.toString().isNotEmpty) {
+      return Image.file(
+        File(img),
+        fit: BoxFit.cover,
+        width: double.infinity,
+        height: 220,
+      );
+    } else {
+      return Container(
+        width: double.infinity,
+        height: 220,
+        color: Colors.grey[200],
+        child: Icon(Icons.image, size: 60, color: Colors.grey[400]),
+      );
+    }
+  }
+
+  Widget _buildIngredients() {
+    final List ingredients = recipe!['ingredients'] ?? [];
+    final List measures = recipe!['measures'] ?? [];
+    if (ingredients.isEmpty) return SizedBox.shrink();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Bahan-bahan',
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: Theme.of(context).colorScheme.primary,
+          ),
+        ),
+        SizedBox(height: 8),
+        ...List.generate(ingredients.length, (i) {
+          final ing = ingredients[i].toString().trim();
+          if (ing.isEmpty) return SizedBox.shrink();
+          final measure =
+              (measures.length > i ? measures[i] : '').toString().trim();
+          return Padding(
+            padding: const EdgeInsets.symmetric(vertical: 2.5),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '• ',
+                  style: TextStyle(fontSize: 16, color: Colors.teal[700]),
+                ),
+                Expanded(
+                  child: Text(
+                    measure.isNotEmpty ? '$measure $ing' : ing,
+                    style: TextStyle(fontSize: 16, color: Colors.grey[800]),
+                  ),
+                ),
+              ],
+            ),
+          );
+        }),
+      ],
+    );
   }
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     if (isLoading) {
       return Scaffold(body: Center(child: CircularProgressIndicator()));
     }
@@ -132,62 +213,119 @@ class _DetailScreenState extends State<DetailScreen> {
     }
 
     return Scaffold(
-      body: CustomScrollView(
-        slivers: [
-          SliverAppBar(
-            expandedHeight: 300,
-            pinned: true,
-            flexibleSpace: FlexibleSpaceBar(
-              background: Image.network(
-                recipe!['strMealThumb'],
-                fit: BoxFit.cover,
-              ),
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+      appBar: AppBar(
+        title: Text(recipe!['strMeal'] ?? 'Detail Resep'),
+        backgroundColor: Theme.of(context).colorScheme.primary,
+        foregroundColor: Colors.white,
+        elevation: 1,
+        actions: [
+          IconButton(
+            icon: Icon(
+              isFavorite ? Icons.favorite : Icons.favorite_border,
+              color: isFavorite ? Colors.red : Colors.white,
+              size: 26,
             ),
-            actions: [
-              IconButton(
-                icon: Icon(
-                  isFavorite ? Icons.favorite : Icons.favorite_border,
-                  color: isFavorite ? Colors.red : Colors.white,
-                ),
-                onPressed: toggleFavorite,
-              ),
-            ],
-          ),
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    recipe!['strMeal'],
-                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                  ),
-                  SizedBox(height: 8),
-                  Text(
-                    'Kategori: ${recipe!['strCategory']}',
-                    style: TextStyle(fontSize: 16, color: Colors.grey[600]),
-                  ),
-                  if (recipe!['strArea'] != null)
-                    Text(
-                      'Asal: ${recipe!['strArea']}',
-                      style: TextStyle(fontSize: 16, color: Colors.grey[600]),
-                    ),
-                  SizedBox(height: 16),
-                  Text(
-                    'Instruksi Memasak',
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                  ),
-                  SizedBox(height: 8),
-                  Text(
-                    recipe!['strInstructions'],
-                    style: TextStyle(fontSize: 16),
-                  ),
-                ],
-              ),
-            ),
+            onPressed: toggleFavorite,
+            tooltip: isFavorite ? 'Hapus dari Favorit' : 'Tambah ke Favorit',
           ),
         ],
+      ),
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 18),
+          child: Card(
+            elevation: 6,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(18),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(18)),
+                  child: _buildImage(),
+                ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 18,
+                    vertical: 18,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        recipe!['strMeal'],
+                        style: theme.textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: Theme.of(context).colorScheme.primary,
+                          fontSize: 24,
+                        ),
+                      ),
+                      SizedBox(height: 8),
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.category,
+                            color: Colors.teal[400],
+                            size: 20,
+                          ),
+                          SizedBox(width: 6),
+                          Text(
+                            recipe!['strCategory'] ?? '',
+                            style: TextStyle(
+                              fontSize: 15,
+                              color: Colors.grey[700],
+                            ),
+                          ),
+                          SizedBox(width: 18),
+                          if (recipe!['strArea'] != null)
+                            Row(
+                              children: [
+                                Icon(
+                                  Icons.place,
+                                  color: Colors.teal[400],
+                                  size: 20,
+                                ),
+                                SizedBox(width: 6),
+                                Text(
+                                  recipe!['strArea'],
+                                  style: TextStyle(
+                                    fontSize: 15,
+                                    color: Colors.grey[700],
+                                  ),
+                                ),
+                              ],
+                            ),
+                        ],
+                      ),
+                      SizedBox(height: 18),
+                      _buildIngredients(),
+                      SizedBox(height: 18),
+                      Text(
+                        'Instruksi Memasak',
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Theme.of(context).colorScheme.primary,
+                        ),
+                      ),
+                      SizedBox(height: 8),
+                      Text(
+                        recipe!['strInstructions'],
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: Colors.grey[800],
+                          height: 1.5,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }

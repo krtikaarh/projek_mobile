@@ -70,6 +70,15 @@ class _TambahResepScreenState extends State<TambahResepScreen> {
   }
 
   Future<void> _simpanResep() async {
+    // Validasi gambar: harus ada salah satu (kamera atau url)
+    if (_imageFile == null &&
+        (_imageUrlController.text.isEmpty ||
+            !Uri.tryParse(_imageUrlController.text)!.isAbsolute)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Gambar resep harus diisi (kamera atau URL)!')),
+      );
+      return;
+    }
     if (_formKey.currentState!.validate()) {
       try {
         final resep = ResepLokal(
@@ -79,7 +88,8 @@ class _TambahResepScreenState extends State<TambahResepScreen> {
           area: _areaController.text,
           deskripsi: _deskripsiController.text,
           bahan: _bahanController.text,
-          imagePath: _imageUrlController.text,
+          imagePath:
+              _imageFile != null ? _imageFile!.path : _imageUrlController.text,
           isFavorite: widget.isEdit ? widget.resep!.isFavorite : 0,
         );
 
@@ -107,7 +117,7 @@ class _TambahResepScreenState extends State<TambahResepScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[50],
+      backgroundColor: Colors.grey[100],
       appBar: AppBar(
         title: Text(widget.isEdit ? 'Edit Resep' : 'Resep Baru'),
         backgroundColor: Colors.teal,
@@ -121,199 +131,228 @@ class _TambahResepScreenState extends State<TambahResepScreen> {
               style: TextStyle(
                 color: Colors.white,
                 fontWeight: FontWeight.bold,
+                fontSize: 16,
+                letterSpacing: 1.1,
               ),
             ),
           ),
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          child: ListView(
-            children: [
-              // Nama Field
-              _buildSectionLabel('NAMA'),
-              _buildTextFormField(
-                controller: _namaController,
-                hintText: 'Masukkan nama resep',
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Nama resep tidak boleh kosong';
-                  }
-                  return null;
-                },
-              ),
-              SizedBox(height: 20),
-
-              // Kategori Field
-              _buildSectionLabel('KATEGORI'),
-              _buildTextFormField(
-                controller: _kategoriController,
-                hintText: 'Contoh: Makanan Utama, Dessert',
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Kategori tidak boleh kosong';
-                  }
-                  return null;
-                },
-              ),
-              SizedBox(height: 20),
-
-              // Area Field
-              _buildSectionLabel('ASAL DAERAH'),
-              _buildTextFormField(
-                controller: _areaController,
-                hintText: 'Contoh: Indonesia, Italia, Jepang',
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Asal daerah tidak boleh kosong';
-                  }
-                  return null;
-                },
-              ),
-              SizedBox(height: 20),
-
-              // Deskripsi Field
-              _buildSectionLabel('DESKRIPSI'),
-              _buildTextFormField(
-                controller: _deskripsiController,
-                hintText: 'Jelaskan cara membuat resep...',
-                maxLines: 5,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Deskripsi tidak boleh kosong';
-                  }
-                  return null;
-                },
-              ),
-              SizedBox(height: 20),
-
-              // Bahan Field
-              _buildSectionLabel('BAHAN-BAHAN'),
-              _buildTextFormField(
-                controller: _bahanController,
-                hintText: 'Contoh: 500gr daging sapi, 2 buah bawang bombay...',
-                maxLines: 4,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return 'Bahan-bahan tidak boleh kosong';
-                  }
-                  return null;
-                },
-              ),
-              SizedBox(height: 20),
-
-              // Image URL Field
-              _buildSectionLabel('GAMBAR (URL)'),
-              _buildTextFormField(
-                controller: _imageUrlController,
-                hintText: 'https://example.com/image.jpg',
-                validator: (value) {
-                  if (value != null && value.isNotEmpty) {
-                    if (!Uri.tryParse(value)!.isAbsolute) {
-                      return 'URL gambar tidak valid';
-                    }
-                  }
-                  return null;
-                },
-              ),
-              SizedBox(height: 16),
-
-              // Image Field (Camera)
-              _buildSectionLabel('GAMBAR (KAMERA)'),
-              Row(
+      body: Center(
+        child: Card(
+          elevation: 8,
+          margin: EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 24),
+            child: Form(
+              key: _formKey,
+              child: ListView(
+                shrinkWrap: true,
                 children: [
-                  ElevatedButton.icon(
-                    onPressed: _ambilGambarDariKamera,
-                    icon: Icon(Icons.camera_alt),
-                    label: Text('Ambil dari Kamera'),
+                  // Nama Field
+                  _buildSectionLabel('NAMA'),
+                  _buildTextFormField(
+                    controller: _namaController,
+                    hintText: 'Masukkan nama resep',
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Nama resep tidak boleh kosong';
+                      }
+                      return null;
+                    },
+                  ),
+                  SizedBox(height: 20),
+
+                  // Kategori Field
+                  _buildSectionLabel('KATEGORI'),
+                  _buildTextFormField(
+                    controller: _kategoriController,
+                    hintText: 'Contoh: Makanan Utama, Dessert',
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Kategori tidak boleh kosong';
+                      }
+                      return null;
+                    },
+                  ),
+                  SizedBox(height: 20),
+
+                  // Area Field
+                  _buildSectionLabel('ASAL DAERAH'),
+                  _buildTextFormField(
+                    controller: _areaController,
+                    hintText: 'Contoh: Indonesia, Italia, Jepang',
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Asal daerah tidak boleh kosong';
+                      }
+                      return null;
+                    },
+                  ),
+                  SizedBox(height: 20),
+
+                  // Deskripsi Field
+                  _buildSectionLabel('DESKRIPSI'),
+                  _buildTextFormField(
+                    controller: _deskripsiController,
+                    hintText: 'Jelaskan cara membuat resep...',
+                    maxLines: 5,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Deskripsi tidak boleh kosong';
+                      }
+                      return null;
+                    },
+                  ),
+                  SizedBox(height: 20),
+
+                  // Bahan Field
+                  _buildSectionLabel('BAHAN-BAHAN'),
+                  _buildTextFormField(
+                    controller: _bahanController,
+                    hintText:
+                        'Contoh: 500gr daging sapi, 2 buah bawang bombay...',
+                    maxLines: 4,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Bahan-bahan tidak boleh kosong';
+                      }
+                      return null;
+                    },
+                  ),
+                  SizedBox(height: 20),
+
+                  // Image URL Field
+                  _buildSectionLabel('GAMBAR (URL)'),
+                  _buildTextFormField(
+                    controller: _imageUrlController,
+                    hintText: 'https://example.com/image.jpg',
+                    validator: (value) {
+                      if (value != null && value.isNotEmpty) {
+                        if (!Uri.tryParse(value)!.isAbsolute) {
+                          return 'URL gambar tidak valid';
+                        }
+                      }
+                      return null;
+                    },
+                  ),
+                  SizedBox(height: 16),
+
+                  // Image Field (Camera)
+                  _buildSectionLabel('GAMBAR (KAMERA)'),
+                  Row(
+                    children: [
+                      ElevatedButton.icon(
+                        onPressed: _ambilGambarDariKamera,
+                        icon: Icon(Icons.camera_alt),
+                        label: Text('Ambil dari Kamera'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.teal,
+                          foregroundColor: Colors.white,
+                          padding: EdgeInsets.symmetric(
+                            vertical: 14,
+                            horizontal: 18,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          textStyle: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 15,
+                          ),
+                          elevation: 2,
+                        ),
+                      ),
+                      SizedBox(width: 16),
+                      if (_imageFile != null)
+                        Text(
+                          'Gambar dipilih',
+                          style: TextStyle(color: Colors.teal),
+                        ),
+                    ],
+                  ),
+                  SizedBox(height: 16),
+
+                  // Preview Image
+                  if (_imageFile != null)
+                    Container(
+                      height: 180,
+                      margin: EdgeInsets.only(bottom: 16),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.teal.withOpacity(0.08),
+                            spreadRadius: 1,
+                            blurRadius: 8,
+                            offset: Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(16),
+                        child: Image.file(_imageFile!, fit: BoxFit.cover),
+                      ),
+                    )
+                  else if (_imageUrlController.text.isNotEmpty)
+                    Container(
+                      height: 180,
+                      margin: EdgeInsets.only(bottom: 16),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.teal.withOpacity(0.08),
+                            spreadRadius: 1,
+                            blurRadius: 8,
+                            offset: Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(16),
+                        child: Image.network(
+                          _imageUrlController.text,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) {
+                            return Container(
+                              color: Colors.grey[200],
+                              child: Icon(
+                                Icons.error,
+                                size: 50,
+                                color: Colors.grey[400],
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    ),
+                  SizedBox(height: 24),
+                  ElevatedButton(
+                    onPressed: _simpanResep,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.teal,
+                      backgroundColor: Colors.teal[700],
                       foregroundColor: Colors.white,
+                      padding: EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      textStyle: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                      elevation: 2,
+                    ),
+                    child: Text(
+                      widget.isEdit ? 'UPDATE RESEP' : 'SIMPAN RESEP',
                     ),
                   ),
-                  SizedBox(width: 16),
-                  if (_imageFile != null)
-                    Text(
-                      'Gambar dipilih',
-                      style: TextStyle(color: Colors.teal),
-                    ),
                 ],
               ),
-              SizedBox(height: 16),
-
-              // Preview Image
-              if (_imageFile != null)
-                Container(
-                  height: 200,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(12),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.grey.withOpacity(0.1),
-                        spreadRadius: 1,
-                        blurRadius: 3,
-                        offset: Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(12),
-                    child: Image.file(_imageFile!, fit: BoxFit.cover),
-                  ),
-                )
-              else if (_imageUrlController.text.isNotEmpty)
-                Container(
-                  height: 200,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(12),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.grey.withOpacity(0.1),
-                        spreadRadius: 1,
-                        blurRadius: 3,
-                        offset: Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(12),
-                    child: Image.network(
-                      _imageUrlController.text,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) {
-                        return Container(
-                          color: Colors.grey[200],
-                          child: Icon(
-                            Icons.error,
-                            size: 50,
-                            color: Colors.grey[400],
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                ),
-              SizedBox(height: 30),
-
-              // Save Button
-              ElevatedButton(
-                onPressed: _simpanResep,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.teal,
-                  foregroundColor: Colors.white,
-                  padding: EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                child: Text(
-                  widget.isEdit ? 'UPDATE RESEP' : 'SIMPAN RESEP',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                ),
-              ),
-            ],
+            ),
           ),
         ),
       ),
