@@ -41,7 +41,6 @@ class DatabaseHelper {
         area $textType,
         deskripsi $textType,
         bahan $textType,
-        imagePath $textType,
         isFavorite $intType
       )
     ''');
@@ -99,7 +98,6 @@ class DatabaseHelper {
         'area',
         'deskripsi',
         'bahan',
-        'imagePath',
       ],
       where: 'id = ?',
       whereArgs: [id],
@@ -210,11 +208,24 @@ class DatabaseHelper {
 
   // Favorit Lokal
   Future<void> toggleFavoritResepLokal(int id, int isFavorite) async {
-    // fitur favorite dinonaktifkan
+    final db = await instance.database;
+    await db.update(
+      'resep_lokal',
+      {'isFavorite': isFavorite},
+      where: 'id = ?',
+      whereArgs: [id],
+    );
   }
 
   Future<List<ResepLokal>> getFavoritResepLokal() async {
-    return []; // fitur favorite dinonaktifkan
+    final db = await instance.database;
+    final result = await db.query(
+      'resep_lokal',
+      where: 'isFavorite = ?',
+      whereArgs: [1],
+      orderBy: 'nama ASC',
+    );
+    return result.map((json) => ResepLokal.fromMap(json)).toList();
   }
 
   Future close() async {

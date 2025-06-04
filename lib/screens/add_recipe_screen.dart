@@ -68,7 +68,7 @@ class _TambahResepScreenState extends State<TambahResepScreen> {
           ).showSnackBar(SnackBar(content: Text('Resep berhasil ditambahkan')));
         }
 
-        Navigator.pop(context, true);
+        Navigator.pop(context, true); // refresh data di halaman sebelumnya
       } catch (e) {
         ScaffoldMessenger.of(
           context,
@@ -79,11 +79,31 @@ class _TambahResepScreenState extends State<TambahResepScreen> {
 
   Future<void> _hapusResep() async {
     if (widget.isEdit && widget.resep != null) {
-      await DatabaseHelper.instance.deleteResepLokal(widget.resep!.id!);
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('Resep berhasil dihapus')));
-      Navigator.pop(context, true);
+      final confirm = await showDialog<bool>(
+        context: context,
+        builder:
+            (ctx) => AlertDialog(
+              title: Text('Konfirmasi Hapus'),
+              content: Text('Yakin ingin menghapus resep ini?'),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(ctx, false),
+                  child: Text('Batal'),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.pop(ctx, true),
+                  child: Text('Hapus', style: TextStyle(color: Colors.red)),
+                ),
+              ],
+            ),
+      );
+      if (confirm == true) {
+        await DatabaseHelper.instance.deleteResepLokal(widget.resep!.id!);
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Resep berhasil dihapus')));
+        Navigator.pop(context, true); // refresh data di halaman sebelumnya
+      }
     }
   }
 

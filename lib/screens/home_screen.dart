@@ -116,6 +116,23 @@ class _BerandaScreenState extends State<BerandaScreen> {
         actions: [
           IconButton(
             icon: Icon(
+              Icons.add,
+              size: 28,
+              color: Theme.of(context).colorScheme.secondary,
+            ),
+            tooltip: 'Tambah Resep Lokal',
+            onPressed: () async {
+              final result = await Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => TambahResepScreen()),
+              );
+              if (result == true) {
+                // Panggil ulang _loadResepLokal() jika ada list resep lokal di halaman ini
+              }
+            },
+          ),
+          IconButton(
+            icon: Icon(
               Icons.account_circle,
               size: 28,
               color: Theme.of(context).colorScheme.secondary,
