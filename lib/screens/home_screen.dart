@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:projek/models/recipe_model.dart';
 import 'package:projek/screens/add_recipe_screen.dart';
 import 'package:projek/screens/favorites_screen.dart';
+import 'package:projek/screens/recipe_detail_screen.dart';
 import 'package:projek/services/api_services.dart';
 
 
@@ -48,7 +49,7 @@ class _BerandaScreenState extends State<BerandaScreen> {
     if (index == 1) {
       Navigator.push(
         context,
-        MaterialPageRoute(builder: (context) => //PencarianScreen()),
+        MaterialPageRoute(builder: (context) => Container()),
       );
     } else if (index == 2) {
       Navigator.push(
@@ -117,7 +118,7 @@ class _BerandaScreenState extends State<BerandaScreen> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => //PencarianScreen(initialSearch: value),
+                          builder: (context) => Container(),
                         ),
                       );
                     }
@@ -230,8 +231,6 @@ class _BerandaScreenState extends State<BerandaScreen> {
           return Icons.set_meal;
         case 'side':
           return Icons.rice_bowl;
-        case 'starter':
-          return Icons.appetizer;
         case 'vegan':
           return Icons.eco;
         case 'vegetarian':
@@ -253,7 +252,7 @@ class _BerandaScreenState extends State<BerandaScreen> {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => DetailResepScreen(
+                builder: (context) => DetailScreen(
                   meal: meals[0],
                   isFromApi: true,
                 ),

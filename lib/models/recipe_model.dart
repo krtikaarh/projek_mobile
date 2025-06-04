@@ -85,12 +85,12 @@ class Meal {
   factory Meal.fromJson(Map<String, dynamic> json) {
     List<String> ingredients = [];
     List<String> measures = [];
-    
+
     // Mengambil ingredients dan measures dari API
     for (int i = 1; i <= 20; i++) {
       String ingredient = json['strIngredient$i'] ?? '';
       String measure = json['strMeasure$i'] ?? '';
-      
+
       if (ingredient.isNotEmpty) {
         ingredients.add(ingredient);
         measures.add(measure);
@@ -110,6 +110,40 @@ class Meal {
       ingredients: ingredients,
       measures: measures,
     );
+  }
+
+  // Factory constructor untuk data dari database lokal
+  factory Meal.fromMap(Map<String, dynamic> map) {
+    return Meal(
+      idMeal: map['idMeal'] ?? '',
+      strMeal: map['strMeal'] ?? '',
+      strDrinkAlternate: map['strDrinkAlternate'] ?? '',
+      strCategory: map['strCategory'] ?? '',
+      strArea: map['strArea'] ?? '',
+      strInstructions: map['strInstructions'] ?? '',
+      strMealThumb: map['strMealThumb'] ?? '',
+      strTags: map['strTags'] ?? '',
+      strYoutube: map['strYoutube'] ?? '',
+      ingredients: [], // Bisa dikembangkan jika ingin simpan ingredients di DB
+      measures: [],    // Bisa dikembangkan jika ingin simpan measures di DB
+    );
+  }
+
+  // Konversi ke Map untuk simpan ke database
+  Map<String, dynamic> toMap() {
+    return {
+      'idMeal': idMeal,
+      'strMeal': strMeal,
+      'strDrinkAlternate': strDrinkAlternate,
+      'strCategory': strCategory,
+      'strArea': strArea,
+      'strInstructions': strInstructions,
+      'strMealThumb': strMealThumb,
+      'strTags': strTags,
+      'strYoutube': strYoutube,
+      // ingredients dan measures biasanya tidak langsung disimpan,
+      // kecuali sudah di-serialize ke string
+    };
   }
 }
 
