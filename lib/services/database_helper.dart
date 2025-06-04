@@ -1,9 +1,10 @@
+import 'dart:convert';
 import 'dart:io';
 import 'package:projek/models/recipe_model.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
-
+import 'package:shared_preferences/shared_preferences.dart';
 
 class DatabaseHelper {
   static final DatabaseHelper instance = DatabaseHelper._init();
@@ -21,11 +22,7 @@ class DatabaseHelper {
     final dbPath = await getDatabasesPath();
     final path = join(dbPath, filePath);
 
-    return await openDatabase(
-      path,
-      version: 1,
-      onCreate: _createDB,
-    );
+    return await openDatabase(path, version: 1, onCreate: _createDB);
   }
 
   Future _createDB(Database db, int version) async {
@@ -67,7 +64,7 @@ class DatabaseHelper {
     final db = await instance.database;
     const orderBy = 'nama ASC';
     final result = await db.query('resep_lokal', orderBy: orderBy);
-    
+
     return result.map((json) => ResepLokal.fromMap(json)).toList();
   }
 
@@ -75,7 +72,16 @@ class DatabaseHelper {
     final db = await instance.database;
     final maps = await db.query(
       'resep_lokal',
-      columns: ['id', 'nama', 'kategori', 'area', 'deskripsi', 'bahan', 'imagePath', 'isFavorite'],
+      columns: [
+        'id',
+        'nama',
+        'kategori',
+        'area',
+        'deskripsi',
+        'bahan',
+        'imagePath',
+        'isFavorite',
+      ],
       where: 'id = ?',
       whereArgs: [id],
     );
@@ -99,11 +105,7 @@ class DatabaseHelper {
 
   Future<int> deleteResepLokal(int id) async {
     final db = await instance.database;
-    return await db.delete(
-      'resep_lokal',
-      where: 'id = ?',
-      whereArgs: [id],
-    );
+    return await db.delete('resep_lokal', where: 'id = ?', whereArgs: [id]);
   }
 
   Future<List<ResepLokal>> getFavoritResepLokal() async {
@@ -114,7 +116,7 @@ class DatabaseHelper {
       whereArgs: [1],
       orderBy: 'nama ASC',
     );
-    
+
     return result.map((json) => ResepLokal.fromMap(json)).toList();
   }
 
@@ -162,6 +164,74 @@ class DatabaseHelper {
       whereArgs: [idMeal],
     );
     return result.isNotEmpty;
+  }
+
+  // USER AUTH SECTION - SharedPreferences Only
+
+  // Register user, return true jika sukses, false jika username sudah ada
+  Future<bool> registerUser(String username, String password) async {
+    final prefs = await SharedPreferences.getInstance();
+    final usersJson = prefs.getString('users');
+    List users = [];
+    if (usersJson != null) {
+      users = jsonDecode(usersJson);
+      if (users.any((u) => u['username'] == username)) {
+        // Username sudah digunakan
+        return false;
+      }
+    }
+    users.add({'username': username, 'password': password});
+    await prefs.setString('users', jsonEncode(users));
+    return true;
+  }
+
+  // Login user, return true jika sukses, false jika gagal
+  Future<bool> loginUser(String username, String password) async {
+    final prefs = await SharedPreferences.getInstance();
+    final usersJson = prefs.getString('users');
+    if (usersJson == null) return false;
+    final users = jsonDecode(usersJson) as List;
+    final user = users.firstWhere(
+      (u) => u['username'] == username && u['password'] == password,
+      orElse: () => null,
+    );
+    if (user != null) {
+      await prefs.setBool('isLoggedIn', true);
+      await prefs.setString('loggedInUsername', username);
+      return true;
+    }
+    return false;
+  }
+
+  // Cek apakah user sudah login
+  Future<bool> isLoggedIn() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool('isLoggedIn') ?? false;
+  }
+
+  // Ambil username yang sedang login
+  Future<String?> getLoggedInUsername() async {
+    final prefs = await SharedPreferences.getInstance();
+    final isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
+    if (isLoggedIn) {
+      return prefs.getString('loggedInUsername');
+    }
+    return null;
+  }
+
+  // Logout user
+  Future<void> logoutUser() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('isLoggedIn', false);
+    await prefs.remove('loggedInUsername');
+  }
+
+  // Hapus database (untuk development/testing)
+  Future<void> deleteDatabase() async {
+    final dbPath = await getDatabasesPath();
+    final path = join(dbPath, 'resep_lokal.db');
+    await databaseFactory.deleteDatabase(path);
+    _database = null;
   }
 
   Future close() async {

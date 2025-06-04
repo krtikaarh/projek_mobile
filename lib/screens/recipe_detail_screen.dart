@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:projek/models/recipe_model.dart';
 import 'package:projek/services/api_services.dart';
 import 'package:projek/services/database_helper.dart';
+import 'package:projek/screens/login_screen.dart';
 
 class DetailScreen extends StatefulWidget {
   final Meal? meal;
@@ -27,10 +28,24 @@ class _DetailScreenState extends State<DetailScreen> {
   @override
   void initState() {
     super.initState();
+    _checkLogin();
     if (widget.isFromApi) {
       loadRecipeDetails();
     } else {
       loadLokalDetails();
+    }
+  }
+
+  Future<void> _checkLogin() async {
+    final loggedIn = await DatabaseHelper.instance.isLoggedIn();
+    if (!loggedIn) {
+      if (mounted) {
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (_) => LoginScreen()),
+          (route) => false,
+        );
+      }
     }
   }
 
@@ -69,9 +84,13 @@ class _DetailScreenState extends State<DetailScreen> {
   Future<void> checkIfFavorite() async {
     bool favorite = false;
     if (widget.isFromApi) {
-      favorite = await DatabaseHelper.instance.isFavoritApi(widget.meal!.idMeal);
+      favorite = await DatabaseHelper.instance.isFavoritApi(
+        widget.meal!.idMeal,
+      );
     } else {
-      final resep = await DatabaseHelper.instance.readResepLokal(widget.resepLokal!.id!);
+      final resep = await DatabaseHelper.instance.readResepLokal(
+        widget.resepLokal!.id!,
+      );
       favorite = resep?.isFavorite == 1;
     }
 
@@ -142,10 +161,7 @@ class _DetailScreenState extends State<DetailScreen> {
                 children: [
                   Text(
                     recipe!['strMeal'],
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                   ),
                   SizedBox(height: 8),
                   Text(
@@ -160,10 +176,7 @@ class _DetailScreenState extends State<DetailScreen> {
                   SizedBox(height: 16),
                   Text(
                     'Instruksi Memasak',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                   ),
                   SizedBox(height: 8),
                   Text(

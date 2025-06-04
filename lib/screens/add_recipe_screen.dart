@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:projek/models/recipe_model.dart';
 import 'package:projek/services/database_helper.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
 
 class TambahResepScreen extends StatefulWidget {
   final ResepLokal? resep;
   final bool isEdit;
 
-  const TambahResepScreen({Key? key, this.resep, this.isEdit = false}) : super(key: key);
+  const TambahResepScreen({Key? key, this.resep, this.isEdit = false})
+    : super(key: key);
 
   @override
   _TambahResepScreenState createState() => _TambahResepScreenState();
@@ -20,6 +23,9 @@ class _TambahResepScreenState extends State<TambahResepScreen> {
   final _deskripsiController = TextEditingController();
   final _bahanController = TextEditingController();
   final _imageUrlController = TextEditingController();
+  final ImagePicker _picker = ImagePicker();
+
+  File? _imageFile;
 
   @override
   void initState() {
@@ -31,6 +37,10 @@ class _TambahResepScreenState extends State<TambahResepScreen> {
       _deskripsiController.text = widget.resep!.deskripsi;
       _bahanController.text = widget.resep!.bahan;
       _imageUrlController.text = widget.resep!.imagePath;
+      if (_imageUrlController.text.isNotEmpty &&
+          File(_imageUrlController.text).existsSync()) {
+        _imageFile = File(_imageUrlController.text);
+      }
     }
   }
 
@@ -43,6 +53,20 @@ class _TambahResepScreenState extends State<TambahResepScreen> {
     _bahanController.dispose();
     _imageUrlController.dispose();
     super.dispose();
+  }
+
+  // Fungsi untuk mengambil gambar dari kamera
+  Future<void> _ambilGambarDariKamera() async {
+    final picked = await _picker.pickImage(
+      source: ImageSource.camera,
+      imageQuality: 80,
+    );
+    if (picked != null) {
+      setState(() {
+        _imageFile = File(picked.path);
+        _imageUrlController.text = picked.path;
+      });
+    }
   }
 
   Future<void> _simpanResep() async {
@@ -61,21 +85,21 @@ class _TambahResepScreenState extends State<TambahResepScreen> {
 
         if (widget.isEdit) {
           await DatabaseHelper.instance.updateResepLokal(resep);
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Resep berhasil diperbarui')),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('Resep berhasil diperbarui')));
         } else {
           await DatabaseHelper.instance.createResepLokal(resep);
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Resep berhasil ditambahkan')),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('Resep berhasil ditambahkan')));
         }
 
         Navigator.pop(context, true);
       } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Gagal menyimpan resep: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Gagal menyimpan resep: $e')));
       }
     }
   }
@@ -194,10 +218,52 @@ class _TambahResepScreenState extends State<TambahResepScreen> {
                   return null;
                 },
               ),
-              SizedBox(height: 30),
+              SizedBox(height: 16),
+
+              // Image Field (Camera)
+              _buildSectionLabel('GAMBAR (KAMERA)'),
+              Row(
+                children: [
+                  ElevatedButton.icon(
+                    onPressed: _ambilGambarDariKamera,
+                    icon: Icon(Icons.camera_alt),
+                    label: Text('Ambil dari Kamera'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.teal,
+                      foregroundColor: Colors.white,
+                    ),
+                  ),
+                  SizedBox(width: 16),
+                  if (_imageFile != null)
+                    Text(
+                      'Gambar dipilih',
+                      style: TextStyle(color: Colors.teal),
+                    ),
+                ],
+              ),
+              SizedBox(height: 16),
 
               // Preview Image
-              if (_imageUrlController.text.isNotEmpty)
+              if (_imageFile != null)
+                Container(
+                  height: 200,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.grey.withOpacity(0.1),
+                        spreadRadius: 1,
+                        blurRadius: 3,
+                        offset: Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: Image.file(_imageFile!, fit: BoxFit.cover),
+                  ),
+                )
+              else if (_imageUrlController.text.isNotEmpty)
                 Container(
                   height: 200,
                   decoration: BoxDecoration(
@@ -244,10 +310,7 @@ class _TambahResepScreenState extends State<TambahResepScreen> {
                 ),
                 child: Text(
                   widget.isEdit ? 'UPDATE RESEP' : 'SIMPAN RESEP',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
               ),
             ],

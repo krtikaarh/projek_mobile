@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:projek/models/recipe_model.dart';
 import 'package:projek/screens/add_recipe_screen.dart';
+import 'package:projek/screens/edit_profile_screen.dart';
 import 'package:projek/screens/favorites_screen.dart';
 import 'package:projek/screens/recipe_detail_screen.dart';
+import 'package:projek/screens/login_screen.dart';
 import 'package:projek/services/api_services.dart';
-
-
+import 'package:projek/services/database_helper.dart';
 
 class BerandaScreen extends StatefulWidget {
   @override
@@ -21,7 +22,21 @@ class _BerandaScreenState extends State<BerandaScreen> {
   @override
   void initState() {
     super.initState();
+    _checkLogin();
     _loadKategori();
+  }
+
+  Future<void> _checkLogin() async {
+    final loggedIn = await DatabaseHelper.instance.isLoggedIn();
+    if (!loggedIn) {
+      if (mounted) {
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (_) => LoginScreen()),
+          (route) => false,
+        );
+      }
+    }
   }
 
   void _loadKategori() async {
@@ -35,9 +50,9 @@ class _BerandaScreenState extends State<BerandaScreen> {
       setState(() {
         isLoading = false;
       });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Gagal memuat kategori: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Gagal memuat kategori: $e')));
     }
   }
 
@@ -64,9 +79,41 @@ class _BerandaScreenState extends State<BerandaScreen> {
     }
   }
 
+  Future<void> _logout() async {
+    await DatabaseHelper.instance.logoutUser();
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (_) => LoginScreen()),
+      (route) => false,
+    );
+  }
+
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey[50],
+      appBar: AppBar(
+        title: Text('Beranda'),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.account_circle),
+            tooltip: 'Edit Profile',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => EditProfileScreen()),
+              );
+            },
+          ),
+          IconButton(
+            icon: Icon(Icons.logout),
+            onPressed: _logout,
+            tooltip: 'Logout',
+          ),
+        ],
+        backgroundColor: Colors.teal,
+        foregroundColor: Colors.white,
+        elevation: 0,
+      ),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
@@ -84,10 +131,7 @@ class _BerandaScreenState extends State<BerandaScreen> {
               ),
               Text(
                 'Apa yang ada di dapur Anda?',
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Colors.grey[600],
-                ),
+                style: TextStyle(fontSize: 16, color: Colors.grey[600]),
               ),
               SizedBox(height: 20),
 
@@ -117,9 +161,7 @@ class _BerandaScreenState extends State<BerandaScreen> {
                     if (value.isNotEmpty) {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(
-                          builder: (context) => Container(),
-                        ),
+                        MaterialPageRoute(builder: (context) => Container()),
                       );
                     }
                   },
@@ -140,21 +182,23 @@ class _BerandaScreenState extends State<BerandaScreen> {
 
               // Categories Grid
               Expanded(
-                child: isLoading
-                    ? Center(child: CircularProgressIndicator())
-                    : GridView.builder(
-                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 2,
-                          crossAxisSpacing: 12,
-                          mainAxisSpacing: 12,
-                          childAspectRatio: 3,
+                child:
+                    isLoading
+                        ? Center(child: CircularProgressIndicator())
+                        : GridView.builder(
+                          gridDelegate:
+                              SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: 2,
+                                crossAxisSpacing: 12,
+                                mainAxisSpacing: 12,
+                                childAspectRatio: 3,
+                              ),
+                          itemCount: kategoriList.length,
+                          itemBuilder: (context, index) {
+                            final kategori = kategoriList[index];
+                            return _buildKategoriCard(kategori);
+                          },
                         ),
-                        itemCount: kategoriList.length,
-                        itemBuilder: (context, index) {
-                          final kategori = kategoriList[index];
-                          return _buildKategoriCard(kategori);
-                        },
-                      ),
               ),
             ],
           ),
@@ -187,10 +231,7 @@ class _BerandaScreenState extends State<BerandaScreen> {
           selectedItemColor: Colors.teal,
           unselectedItemColor: Colors.grey[600],
           items: [
-            BottomNavigationBarItem(
-              icon: Icon(Icons.home),
-              label: 'Beranda',
-            ),
+            BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Beranda'),
             BottomNavigationBarItem(
               icon: Icon(Icons.camera_alt),
               label: 'Cari',
@@ -199,10 +240,7 @@ class _BerandaScreenState extends State<BerandaScreen> {
               icon: Icon(Icons.favorite),
               label: 'Favorit',
             ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.add),
-              label: 'Tambah',
-            ),
+            BottomNavigationBarItem(icon: Icon(Icons.add), label: 'Tambah'),
           ],
         ),
       ),
@@ -247,22 +285,29 @@ class _BerandaScreenState extends State<BerandaScreen> {
     return GestureDetector(
       onTap: () async {
         try {
-          final meals = await ApiService.getMealsByCategory(kategori.strCategory);
+          final meals = await ApiService.getMealsByCategory(
+            kategori.strCategory,
+          );
           if (meals.isNotEmpty) {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => DetailScreen(
-                  meal: meals[0],
-                  isFromApi: true,
-                ),
+                builder:
+                    (context) => MealsByCategoryScreen(
+                      kategori: kategori.strCategory,
+                      meals: meals,
+                    ),
               ),
+            );
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text('Tidak ada menu di kategori ini.')),
             );
           }
         } catch (e) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Gagal memuat resep: $e')),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('Gagal memuat resep: $e')));
         }
       },
       child: Container(
@@ -310,6 +355,54 @@ class _BerandaScreenState extends State<BerandaScreen> {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+// Tambahkan layar baru untuk menampilkan daftar menu berdasarkan kategori
+class MealsByCategoryScreen extends StatelessWidget {
+  final String kategori;
+  final List<Meal> meals;
+
+  const MealsByCategoryScreen({
+    Key? key,
+    required this.kategori,
+    required this.meals,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Menu: $kategori'),
+        backgroundColor: Colors.teal,
+        foregroundColor: Colors.white,
+      ),
+      body: ListView.separated(
+        itemCount: meals.length,
+        separatorBuilder: (_, __) => Divider(height: 1),
+        itemBuilder: (context, index) {
+          final meal = meals[index];
+          return ListTile(
+            leading: Image.network(
+              meal.strMealThumb,
+              width: 60,
+              height: 60,
+              fit: BoxFit.cover,
+            ),
+            title: Text(meal.strMeal),
+            trailing: Icon(Icons.arrow_forward_ios),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => DetailScreen(meal: meal, isFromApi: true),
+                ),
+              );
+            },
+          );
+        },
       ),
     );
   }
