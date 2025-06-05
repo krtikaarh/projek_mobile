@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:projek/models/recipe_model.dart';
 import 'package:projek/services/api_services.dart';
 import 'package:projek/services/database_helper.dart';
+import 'package:projek/services/favorite_service.dart';
 import 'package:projek/screens/login_screen.dart';
 import 'dart:io';
 
@@ -24,6 +25,7 @@ class DetailScreen extends StatefulWidget {
 class _DetailScreenState extends State<DetailScreen> {
   Map<String, dynamic>? recipe;
   bool isLoading = true;
+  bool isFavorite = false;
 
   @override
   void initState() {
@@ -31,8 +33,10 @@ class _DetailScreenState extends State<DetailScreen> {
     _checkLogin();
     if (widget.isFromApi) {
       loadRecipeDetails();
+      _checkFavoriteApi();
     } else {
       loadLokalDetails();
+      _checkFavoriteLokal();
     }
   }
 
@@ -79,6 +83,58 @@ class _DetailScreenState extends State<DetailScreen> {
       };
       isLoading = false;
     });
+  }
+
+  Future<void> _checkFavoriteApi() async {
+    final favs = await FavoriteService.getFavorites();
+    setState(() {
+      isFavorite = favs.contains(widget.meal?.idMeal);
+    });
+  }
+
+  Future<void> _checkFavoriteLokal() async {
+    final favs = await FavoriteService.getFavorites();
+    setState(() {
+      isFavorite = favs.contains(widget.resepLokal?.id?.toString());
+    });
+  }
+
+  Future<void> _toggleFavorite() async {
+    if (widget.isFromApi) {
+      final id = widget.meal!.idMeal;
+      if (isFavorite) {
+        await FavoriteService.removeFavorite(id);
+        setState(() => isFavorite = false);
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Dihapus dari favorit')));
+      } else {
+        await FavoriteService.addFavorite(id);
+        setState(() => isFavorite = true);
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Ditambahkan ke favorit')));
+      }
+    } else {
+      final id = widget.resepLokal!.id!.toString();
+      if (isFavorite) {
+        await FavoriteService.removeFavorite(id);
+        setState(() => isFavorite = false);
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Dihapus dari favorit')));
+      } else {
+        await FavoriteService.addFavorite(id);
+        setState(() => isFavorite = true);
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Ditambahkan ke favorit')));
+      }
+    }
+    // Jika dipanggil dari halaman favorit, setelah toggle langsung pop dan refresh
+    if (Navigator.canPop(context)) {
+      Navigator.pop(context, true);
+    }
   }
 
   Widget _buildImage() {
@@ -172,6 +228,17 @@ class _DetailScreenState extends State<DetailScreen> {
         backgroundColor: Theme.of(context).colorScheme.primary,
         foregroundColor: Colors.white,
         elevation: 1,
+        actions: [
+          IconButton(
+            icon: Icon(
+              isFavorite ? Icons.favorite : Icons.favorite_border,
+              color: Colors.redAccent,
+              size: 28,
+            ),
+            tooltip: isFavorite ? 'Hapus dari Favorit' : 'Tambah ke Favorit',
+            onPressed: _toggleFavorite,
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         child: Padding(

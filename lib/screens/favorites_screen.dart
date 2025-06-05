@@ -7,6 +7,8 @@ import 'package:projek/screens/recipe_detail_screen.dart';
 import 'package:projek/services/database_helper.dart';
 import 'package:projek/screens/login_screen.dart';
 import 'package:projek/screens/add_recipe_screen.dart';
+import 'package:projek/services/favorite_service.dart';
+import 'package:projek/services/api_services.dart';
 
 class FavoritScreen extends StatefulWidget {
   @override
@@ -39,12 +41,28 @@ class _FavoritScreenState extends State<FavoritScreen> {
   }
 
   Future<void> loadFavorit() async {
-    final apiData = await DatabaseHelper.instance.getFavoritApi();
-    final lokalData = await DatabaseHelper.instance.getFavoritResepLokal();
-
+    setState(() => isLoading = true);
+    final ids = await FavoriteService.getFavorites();
+    // Ambil data API
+    List<Meal> apiMeals = [];
+    for (final id in ids) {
+      if (int.tryParse(id) == null) {
+        final meal = await ApiService.getMealDetail(id);
+        if (meal != null) apiMeals.add(meal);
+      }
+    }
+    // Ambil data lokal
+    List<ResepLokal> lokalMeals = [];
+    for (final id in ids) {
+      final intId = int.tryParse(id);
+      if (intId != null) {
+        final lokal = await DatabaseHelper.instance.readResepLokal(intId);
+        if (lokal != null) lokalMeals.add(lokal);
+      }
+    }
     setState(() {
-      favoritApi = apiData.map((data) => Meal.fromMap(data)).toList();
-      favoritLokal = lokalData; // Sudah filter isFavorite di query
+      favoritApi = apiMeals;
+      favoritLokal = lokalMeals;
       isLoading = false;
     });
   }
@@ -135,8 +153,9 @@ class _FavoritScreenState extends State<FavoritScreen> {
                                           ),
                                           tooltip: 'Hapus dari Favorit',
                                           onPressed: () async {
-                                            await DatabaseHelper.instance
-                                                .removeFavoritApi(meal.idMeal);
+                                            await FavoriteService.removeFavorite(
+                                              meal.idMeal,
+                                            );
                                             setState(() {
                                               favoritApi.removeAt(index);
                                             });
@@ -154,8 +173,8 @@ class _FavoritScreenState extends State<FavoritScreen> {
                                         Icon(Icons.arrow_forward_ios, size: 18),
                                       ],
                                     ),
-                                    onTap: () {
-                                      Navigator.push(
+                                    onTap: () async {
+                                      final result = await Navigator.push(
                                         context,
                                         MaterialPageRoute(
                                           builder:
@@ -164,7 +183,8 @@ class _FavoritScreenState extends State<FavoritScreen> {
                                                 meal: meal,
                                               ),
                                         ),
-                                      ).then((_) => loadFavorit());
+                                      );
+                                      if (result == true) loadFavorit();
                                     },
                                   ),
                                 );
@@ -245,69 +265,28 @@ class _FavoritScreenState extends State<FavoritScreen> {
                                           ),
                                           tooltip: 'Hapus dari Favorit',
                                           onPressed: () async {
-                                            final confirm = await showDialog<
-                                              bool
-                                            >(
-                                              context: context,
-                                              builder:
-                                                  (ctx) => AlertDialog(
-                                                    title: Text(
-                                                      'Konfirmasi Hapus',
-                                                    ),
-                                                    content: Text(
-                                                      'Yakin ingin menghapus dari favorit?',
-                                                    ),
-                                                    actions: [
-                                                      TextButton(
-                                                        onPressed:
-                                                            () => Navigator.pop(
-                                                              ctx,
-                                                              false,
-                                                            ),
-                                                        child: Text('Batal'),
-                                                      ),
-                                                      TextButton(
-                                                        onPressed:
-                                                            () => Navigator.pop(
-                                                              ctx,
-                                                              true,
-                                                            ),
-                                                        child: Text(
-                                                          'Hapus',
-                                                          style: TextStyle(
-                                                            color: Colors.red,
-                                                          ),
-                                                        ),
-                                                      ),
-                                                    ],
-                                                  ),
+                                            await FavoriteService.removeFavorite(
+                                              resep.id!.toString(),
                                             );
-                                            if (confirm == true) {
-                                              await DatabaseHelper.instance
-                                                  .toggleFavoritResepLokal(
-                                                    resep.id!,
-                                                    0,
-                                                  );
-                                              setState(() {
-                                                favoritLokal.removeAt(index);
-                                              });
-                                              ScaffoldMessenger.of(
-                                                context,
-                                              ).showSnackBar(
-                                                SnackBar(
-                                                  content: Text(
-                                                    '${resep.nama} dihapus dari favorit',
-                                                  ),
+                                            setState(() {
+                                              favoritLokal.removeAt(index);
+                                            });
+                                            ScaffoldMessenger.of(
+                                              context,
+                                            ).showSnackBar(
+                                              SnackBar(
+                                                content: Text(
+                                                  '${resep.nama} dihapus dari favorit',
                                                 ),
-                                              );
-                                            }
+                                              ),
+                                            );
                                           },
                                         ),
                                         Icon(Icons.arrow_forward_ios, size: 18),
                                       ],
                                     ),
-                                    onTap: () {
-                                      Navigator.push(
+                                    onTap: () async {
+                                      final result = await Navigator.push(
                                         context,
                                         MaterialPageRoute(
                                           builder:
@@ -316,7 +295,8 @@ class _FavoritScreenState extends State<FavoritScreen> {
                                                 resepLokal: resep,
                                               ),
                                         ),
-                                      ).then((_) => loadFavorit());
+                                      );
+                                      if (result == true) loadFavorit();
                                     },
                                   ),
                                 );

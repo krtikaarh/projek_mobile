@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:permission_handler/permission_handler.dart'; // Tambahkan import ini
 import 'dart:io';
 
 class EditProfileScreen extends StatefulWidget {
@@ -27,6 +28,14 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
   }
 
   Future<void> _pickPhoto() async {
+    // Minta permission kamera sebelum akses kamera
+    final status = await Permission.camera.request();
+    if (!status.isGranted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Izin kamera diperlukan untuk selfie')),
+      );
+      return;
+    }
     final picker = ImagePicker();
     final picked = await picker.pickImage(
       source: ImageSource.camera, // hanya kamera, bukan gallery

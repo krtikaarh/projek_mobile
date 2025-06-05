@@ -91,14 +91,7 @@ class DatabaseHelper {
     final db = await instance.database;
     final maps = await db.query(
       'resep_lokal',
-      columns: [
-        'id',
-        'nama',
-        'kategori',
-        'area',
-        'deskripsi',
-        'bahan',
-      ],
+      columns: ['id', 'nama', 'kategori', 'area', 'deskripsi', 'bahan'],
       where: 'id = ?',
       whereArgs: [id],
     );
@@ -195,15 +188,22 @@ class DatabaseHelper {
 
   // Favorit API
   Future<void> addFavoritApi(Meal meal) async {
-    // fitur favorite dinonaktifkan
+    final db = await instance.database;
+    await db.insert(
+      'favorit_api',
+      meal.toMap(),
+      conflictAlgorithm: ConflictAlgorithm.replace,
+    );
   }
 
   Future<void> removeFavoritApi(String idMeal) async {
-    // fitur favorite dinonaktifkan
+    final db = await instance.database;
+    await db.delete('favorit_api', where: 'idMeal = ?', whereArgs: [idMeal]);
   }
 
   Future<List<Map<String, dynamic>>> getFavoritApi() async {
-    return []; // fitur favorite dinonaktifkan
+    final db = await instance.database;
+    return await db.query('favorit_api');
   }
 
   // Favorit Lokal
