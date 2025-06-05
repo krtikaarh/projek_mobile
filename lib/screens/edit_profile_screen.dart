@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
 
 class EditProfileScreen extends StatefulWidget {
   @override
@@ -8,6 +10,7 @@ class EditProfileScreen extends StatefulWidget {
 
 class _EditProfileScreenState extends State<EditProfileScreen> {
   String? _username;
+  String? _photoPath;
 
   @override
   void initState() {
@@ -19,7 +22,28 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
       _username = prefs.getString('loggedInUsername') ?? '';
+      _photoPath = prefs.getString('profilePhotoPath');
     });
+  }
+
+  Future<void> _pickPhoto() async {
+    final picker = ImagePicker();
+    final picked = await picker.pickImage(
+      source: ImageSource.camera, // hanya kamera, bukan gallery
+      imageQuality: 70,
+      preferredCameraDevice:
+          CameraDevice.front, // gunakan kamera depan untuk selfie
+    );
+    if (picked != null) {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('profilePhotoPath', picked.path);
+      setState(() {
+        _photoPath = picked.path;
+      });
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Foto profil berhasil diubah')));
+    }
   }
 
   @override
@@ -45,7 +69,43 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(Icons.account_circle, size: 100, color: Colors.teal[200]),
+                GestureDetector(
+                  onTap: _pickPhoto,
+                  child: Stack(
+                    alignment: Alignment.bottomRight,
+                    children: [
+                      CircleAvatar(
+                        radius: 54,
+                        backgroundColor: Colors.teal[50],
+                        backgroundImage:
+                            (_photoPath != null && _photoPath!.isNotEmpty)
+                                ? FileImage(File(_photoPath!))
+                                : null,
+                        child:
+                            (_photoPath == null || _photoPath!.isEmpty)
+                                ? Icon(
+                                  Icons.account_circle,
+                                  size: 100,
+                                  color: Colors.teal[200],
+                                )
+                                : null,
+                      ),
+                      Positioned(
+                        bottom: 4,
+                        right: 4,
+                        child: CircleAvatar(
+                          radius: 18,
+                          backgroundColor: Colors.white,
+                          child: Icon(
+                            Icons.camera_alt,
+                            color: Colors.teal[700],
+                            size: 22,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
                 SizedBox(height: 24),
                 Text(
                   _username ?? '',
@@ -56,7 +116,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                 ),
                 SizedBox(height: 32),
                 Text(
-                  'Fitur foto profil dinonaktifkan.',
+                  'Tap foto untuk selfie menggunakan kamera depan.',
                   textAlign: TextAlign.center,
                   style: TextStyle(color: Colors.grey[600], fontSize: 15),
                 ),

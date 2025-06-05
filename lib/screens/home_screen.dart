@@ -418,36 +418,156 @@ class MealsByCategoryScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         title: Text('Menu: $kategori'),
         backgroundColor: Colors.teal,
         foregroundColor: Colors.white,
+        elevation: 2,
       ),
-      body: ListView.separated(
-        itemCount: meals.length,
-        separatorBuilder: (_, __) => Divider(height: 1),
-        itemBuilder: (context, index) {
-          final meal = meals[index];
-          return ListTile(
-            leading: Image.network(
-              meal.strMealThumb,
-              width: 60,
-              height: 60,
-              fit: BoxFit.cover,
-            ),
-            title: Text(meal.strMeal),
-            trailing: Icon(Icons.arrow_forward_ios),
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => DetailScreen(meal: meal, isFromApi: true),
+      body: Padding(
+        padding: const EdgeInsets.all(18.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Card(
+              elevation: 4,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(18),
+              ),
+              color: Colors.teal[50],
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  vertical: 18,
+                  horizontal: 18,
                 ),
-              );
-            },
-          );
-        },
+                child: Row(
+                  children: [
+                    Icon(Icons.category, color: Colors.teal[700], size: 28),
+                    SizedBox(width: 14),
+                    Expanded(
+                      child: Text(
+                        kategori,
+                        style: theme.textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: Colors.teal[900],
+                          fontSize: 22,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            SizedBox(height: 18),
+            Expanded(
+              child:
+                  meals.isEmpty
+                      ? Center(child: Text('Tidak ada menu di kategori ini.'))
+                      : ListView.separated(
+                        itemCount: meals.length,
+                        separatorBuilder: (_, __) => SizedBox(height: 14),
+                        itemBuilder: (context, index) {
+                          final meal = meals[index];
+                          return InkWell(
+                            borderRadius: BorderRadius.circular(16),
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder:
+                                      (_) => DetailScreen(
+                                        meal: meal,
+                                        isFromApi: true,
+                                      ),
+                                ),
+                              );
+                            },
+                            child: Card(
+                              elevation: 3,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 10,
+                                  horizontal: 12,
+                                ),
+                                child: Row(
+                                  children: [
+                                    ClipRRect(
+                                      borderRadius: BorderRadius.circular(12),
+                                      child: Image.network(
+                                        meal.strMealThumb,
+                                        width: 70,
+                                        height: 70,
+                                        fit: BoxFit.cover,
+                                        errorBuilder:
+                                            (c, e, s) => Container(
+                                              width: 70,
+                                              height: 70,
+                                              color: Colors.grey[200],
+                                              child: Icon(
+                                                Icons.image,
+                                                color: Colors.grey[400],
+                                              ),
+                                            ),
+                                      ),
+                                    ),
+                                    SizedBox(width: 18),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            meal.strMeal,
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 17,
+                                              color: Colors.teal[900],
+                                            ),
+                                            maxLines: 2,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                          SizedBox(height: 6),
+                                          Row(
+                                            children: [
+                                              Icon(
+                                                Icons.place,
+                                                size: 16,
+                                                color: Colors.teal[300],
+                                              ),
+                                              SizedBox(width: 4),
+                                              Text(
+                                                meal.strArea,
+                                                style: TextStyle(
+                                                  fontSize: 13,
+                                                  color: Colors.grey[700],
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    Icon(
+                                      Icons.arrow_forward_ios,
+                                      size: 20,
+                                      color: Colors.teal[300],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -466,41 +586,157 @@ class SearchResultScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         title: Text('Hasil: "$keyword"'),
         backgroundColor: Colors.teal,
         foregroundColor: Colors.white,
+        elevation: 2,
       ),
-      body:
-          meals.isEmpty
-              ? Center(child: Text('Tidak ada hasil ditemukan.'))
-              : ListView.separated(
-                itemCount: meals.length,
-                separatorBuilder: (_, __) => Divider(height: 1),
-                itemBuilder: (context, index) {
-                  final meal = meals[index];
-                  return ListTile(
-                    leading: Image.network(
-                      meal.strMealThumb,
-                      width: 60,
-                      height: 60,
-                      fit: BoxFit.cover,
-                    ),
-                    title: Text(meal.strMeal),
-                    trailing: Icon(Icons.arrow_forward_ios),
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder:
-                              (_) => DetailScreen(meal: meal, isFromApi: true),
-                        ),
-                      );
-                    },
-                  );
-                },
+      body: Padding(
+        padding: const EdgeInsets.all(18.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Card(
+              elevation: 4,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(18),
               ),
+              color: Colors.teal[50],
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  vertical: 18,
+                  horizontal: 18,
+                ),
+                child: Row(
+                  children: [
+                    Icon(Icons.search, color: Colors.teal[700], size: 28),
+                    SizedBox(width: 14),
+                    Expanded(
+                      child: Text(
+                        'Hasil pencarian "$keyword"',
+                        style: theme.textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: Colors.teal[900],
+                          fontSize: 20,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            SizedBox(height: 18),
+            Expanded(
+              child:
+                  meals.isEmpty
+                      ? Center(child: Text('Tidak ada hasil ditemukan.'))
+                      : ListView.separated(
+                        itemCount: meals.length,
+                        separatorBuilder: (_, __) => SizedBox(height: 14),
+                        itemBuilder: (context, index) {
+                          final meal = meals[index];
+                          return InkWell(
+                            borderRadius: BorderRadius.circular(16),
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder:
+                                      (_) => DetailScreen(
+                                        meal: meal,
+                                        isFromApi: true,
+                                      ),
+                                ),
+                              );
+                            },
+                            child: Card(
+                              elevation: 3,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 10,
+                                  horizontal: 12,
+                                ),
+                                child: Row(
+                                  children: [
+                                    ClipRRect(
+                                      borderRadius: BorderRadius.circular(12),
+                                      child: Image.network(
+                                        meal.strMealThumb,
+                                        width: 70,
+                                        height: 70,
+                                        fit: BoxFit.cover,
+                                        errorBuilder:
+                                            (c, e, s) => Container(
+                                              width: 70,
+                                              height: 70,
+                                              color: Colors.grey[200],
+                                              child: Icon(
+                                                Icons.image,
+                                                color: Colors.grey[400],
+                                              ),
+                                            ),
+                                      ),
+                                    ),
+                                    SizedBox(width: 18),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            meal.strMeal,
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                              fontSize: 17,
+                                              color: Colors.teal[900],
+                                            ),
+                                            maxLines: 2,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                          SizedBox(height: 6),
+                                          Row(
+                                            children: [
+                                              Icon(
+                                                Icons.place,
+                                                size: 16,
+                                                color: Colors.teal[300],
+                                              ),
+                                              SizedBox(width: 4),
+                                              Text(
+                                                meal.strArea,
+                                                style: TextStyle(
+                                                  fontSize: 13,
+                                                  color: Colors.grey[700],
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    Icon(
+                                      Icons.arrow_forward_ios,
+                                      size: 20,
+                                      color: Colors.teal[300],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
